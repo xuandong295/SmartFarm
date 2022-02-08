@@ -105,24 +105,45 @@ void setup()
 //  Serial.println("IP address: ");
 //  Serial.println(WiFi.localIP());
 //  client.setCallback(callback);
+  setup_wifi();
+  client.setServer(mqtt_server, mqtt_port); 
+  client.setCallback(callback);
   startTimers();
 }
 
 void loop()
 {
-//  if (!client.connected())// Kiểm tra kết nối
-//    reconnect();
-//  client.loop();
+  if (!client.connected())// Kiểm tra kết nối
+    reconnect();
+  client.loop();
   
   timer.run(); // Initiates SimpleTimer
   BlynkEdgent.run();
   
 }
 
+
+// Hàm kết nối wifi
+void setup_wifi() 
+{
+  delay(10);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
 /****************************************************************
 * Read remote commands 
 ****************************************************************/
-BLYNK_WRITE(V3) // Pump remote control
+BLYNK_WRITE(V5) // Pump remote control
 {
   int i=param.asInt();
   if (i==1) 
@@ -130,10 +151,9 @@ BLYNK_WRITE(V3) // Pump remote control
     pumpStatus = !pumpStatus;
     aplyCmd();
   }
-    sendUptimeMQTT();
 }
 
-BLYNK_WRITE(V4) // Lamp remote control
+BLYNK_WRITE(V6) // Lamp remote control
 {
   int i=param.asInt();
   if (i==1) 
@@ -141,7 +161,6 @@ BLYNK_WRITE(V4) // Lamp remote control
     lampStatus = !lampStatus;
     aplyCmd();
   }
-  sendUptimeMQTT();
 }
 
 /****************************************************************
